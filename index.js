@@ -43,29 +43,39 @@ function run() {
         var userId = '';
         if (!isNullOrEmpty(match)) {
             userId = match[1];
-        } else {
-            return;
         }
-        if (username === ('id' + userId)) {
+        if (userId === '' || (username === ('id' + userId))) {
             var req = new XMLHttpRequest({mozSystem: true});
             req.withCredentials = true;
-            req.open("GET", 'https://api.vk.com/method/users.get?user_ids=' + userId + '&v=5.52&fields=domain', true);
+            req.open("GET", 'https://api.vk.com/method/users.get?user_ids=' + (userId === '' ? username : userId) + '&v=5.52&fields=domain', true);
             req.setRequestHeader("Pragma", "no-cache");
             req.setRequestHeader("Cache-Control", "no-cache");
             req.onload = () => {
-                var json = JSON.parse(req.responseText);
-                if (typeof json.error === 'undefined') {
-                    var vkusername = json.response[0].domain;
-                    if (vkusername !== 'id' + userId) {
-                        addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + vkusername + '">' + vkusername + '</a>');
-                        return;
+                if (req.status == 200) {
+                    var json = JSON.parse(req.responseText);
+                    if (typeof json.error === 'undefined') {
+                        var vkusername = json.response[0].domain;
+                        userId = json.response[0].id;
+                        if (vkusername !== 'id' + userId) {
+                            addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + vkusername + '">' + vkusername + '</a>');
+                            return;
+                        }
                     }
                 }
-                addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a>');
+                if (userId !== '') {
+                    addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a>');
+                }
+            };
+            req.onerror = () => {
+                if (userId !== '') {
+                    addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a>');
+                }
             };
             req.send(null);
         } else {
-            addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + username + '">' + username + '</a>');
+            if (userId !== '') {
+                addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + username + '">' + username + '</a>');
+            }
         }
     }
 };
