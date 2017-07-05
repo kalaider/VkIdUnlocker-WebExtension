@@ -47,7 +47,23 @@ function run() {
             return;
         }
         if (username === ('id' + userId)) {
-            addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a>');
+            var req = new XMLHttpRequest({mozSystem: true});
+            req.withCredentials = true;
+            req.open("GET", 'https://api.vk.com/method/users.get?user_ids=' + userId + '&v=5.52&fields=domain', true);
+            req.setRequestHeader("Pragma", "no-cache");
+            req.setRequestHeader("Cache-Control", "no-cache");
+            req.onload = () => {
+                var json = JSON.parse(req.responseText);
+                if (typeof json.error === 'undefined') {
+                    var vkusername = json.response[0].domain;
+                    if (vkusername !== 'id' + userId) {
+                        addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + vkusername + '">' + vkusername + '</a>');
+                        return;
+                    }
+                }
+                addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a>');
+            };
+            req.send(null);
         } else {
             addVIUInfo('<a href="https://vk.com/id' + userId + '">' + userId + '</a> &lt;---&gt; <a href="https://vk.com/' + username + '">' + username + '</a>');
         }
